@@ -1,19 +1,21 @@
 package dev.dev.domain;
 
+import lombok.Data;
+
+@Data
 public class UserDto {
 
+    private Long id;
     private String name;
-
+    private String nickname;
     private String phone;
+    private String loginId;
 
-    private String userId;
-
-    private String password;
-
-    public UserDto(String name, String phone, String userId, String password) {
+    public UserDto(Long id, String name, String nickname, String phone, String loginId) {
+        this.id = id;
         this.name = name;
+        this.nickname = nickname;
         this.phone = phone;
-        this.userId = userId;
-        this.password = password;
+        this.loginId = loginId;
     }
 }

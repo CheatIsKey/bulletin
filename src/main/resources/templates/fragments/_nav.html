@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="navbar">
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" th:href="@{/}">spring-jpa.dev</a>
+    <nav class="links">
+      <a th:href="@{/}">메인</a>
+      <a th:href="@{/login}">로그인</a>
+      <a class="btn btn--primary" th:href="@{/register}">회원가입</a>
+    </nav>
+  </div>
+</header>
+</body>
+</html>

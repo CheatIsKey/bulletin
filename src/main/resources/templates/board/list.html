@@ -1,0 +1,76 @@
+<!-- /templates/board/list.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시판</title>
+  <style>
+    .pager a { margin: 0 4px; text-decoration: none; }
+    .pager .active { font-weight: bold; text-decoration: underline; }
+  </style>
+</head>
+<body>
+<h1>최신 게시글</h1>
+<ul id="post-list"></ul>
+<div class="pager" id="pager"></div>
+
+<script>
+  const urlParams = new URLSearchParams(location.search);
+  let currentPage = parseInt(urlParams.get('page') || '0', 10);
+  const size = 10;
+
+  async function load(page = 0) {
+    const res = await fetch(`/posts?page=${page}&size=${size}`, { headers: { 'Accept': 'application/json' }});
+    const data = await res.json();
+    renderList(data.content);
+    renderPager(data.number, data.totalPages);
+    currentPage = data.number;
+    history.replaceState(null, '', `?page=${currentPage}`);
+  }
+
+  function renderList(items) {
+    const ul = document.getElementById('post-list');
+    ul.innerHTML = items.map(p => `
+      <li>
+        <a href="/board/${p.id}">${escapeHtml(p.title)}</a>
+        <small> | ${escapeHtml(p.authorName)} | 댓글 ${p.commentCount} | ${fmt(p.createdAt)}</small>
+      </li>
+    `).join('');
+  }
+
+  function renderPager(page, totalPages) {
+    const pager = document.getElementById('pager');
+    if (!totalPages || totalPages <= 1) { pager.innerHTML=''; return; }
+
+    const pages = [];
+    const start = Math.max(0, page - 2);
+    const end = Math.min(totalPages - 1, page + 2);
+
+    if (page > 0) pages.push(`<a href="#" data-p="${page-1}">&laquo; Prev</a>`);
+    for (let p = start; p <= end; p++) {
+      pages.push(p === page
+        ? `<span class="active">${p+1}</span>`
+        : `<a href="#" data-p="${p}">${p+1}</a>`);
+    }
+    if (page < totalPages - 1) pages.push(`<a href="#" data-p="${page+1}">Next &raquo;</a>`);
+
+    pager.innerHTML = pages.join('');
+    pager.querySelectorAll('a[data-p]').forEach(a => {
+      a.addEventListener('click', (e) => { e.preventDefault(); load(parseInt(a.dataset.p, 10)); });
+    });
+  }
+
+  function fmt(iso) {
+    // ISO 문자열 가정 (Spring Jackson 기본)
+    const d = new Date(iso);
+    const yy = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0'), mi = String(d.getMinutes()).padStart(2,'0');
+    return `${yy}-${mm}-${dd} ${hh}:${mi}`;
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  load(currentPage);
+</script>
+</body>
+</html>

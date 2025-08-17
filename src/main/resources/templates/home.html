@@ -1,0 +1,14 @@
+<!-- src/main/resources/templates/index.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/_head :: common-head('홈')"></head>
+<body>
+<div th:replace="fragments/_nav :: navbar"></div>
+
+<main class="container py-6">
+  <h1 class="h1">홈</h1>
+  <p class="muted">환영합니다 🙌</p>
+  <p><a th:href="@{/login}">로그인</a> · <a th:href="@{/register}">회원가입</a></p>
+</main>
+</body>
+</html>

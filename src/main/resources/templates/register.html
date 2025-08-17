@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/_head :: common-head('회원가입')"></head>
+<body>
+<div th:replace="fragments/_nav :: navbar"></div>
+
+<main class="container py-6 grid-center">
+  <form id="register-form" class="card form" autocomplete="off">
+    <h1 class="h1">회원가입</h1>
+
+    <label class="field">
+      <span>이름</span>
+      <input id="name" type="text" maxlength="20" required />
+    </label>
+
+    <label class="field">
+      <span>전화번호</span>
+      <input id="phone" type="text" maxlength="20" placeholder="010-1234-5678" required />
+    </label>
+
+    <label class="field">
+      <span>로그인 ID</span>
+      <input id="loginId" type="text" maxlength="10" required />
+    </label>
+
+    <label class="field">
+      <span>비밀번호</span>
+      <input id="password" type="password" minlength="8" maxlength="100" required />
+    </label>
+
+    <div id="register-msg" class="alert" style="display:none"></div>
+
+    <!-- Hidden CSRF for AJAX (Security 있을 때) -->
+    <input id="csrfHidden" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+    <button class="btn btn--primary" type="submit">가입하기</button>
+    <p class="muted mt-2">이미 계정이 있으신가요? <a th:href="@{/login}">로그인</a></p>
+  </form>
+</main>
+
+<script th:src="@{/js/app.js}"></script>
+<script>
+  // 회원가입: 기존 REST 컨트롤러(/users/register)가 JSON을 받으므로 fetch 사용
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const loginId = document.getElementById('loginId').value.trim();
+    const password = document.getElementById('password').value;
+
+    const headerName = document.querySelector('meta[name="_csrf_header"]')?.content;
+    const token = document.querySelector('meta[name="_csrf"]')?.content;
+
+    const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    if (headerName && token) headers[headerName] = token; // Security 사용 시 CSRF 헤더 추가
+
+    const msg = document.getElementById('register-msg');
+    msg.style.display = 'none';
+
+    try {
+      const res = await fetch('/users/register', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name, phone, loginId, password })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || '회원가입 실패');
+      }
+      const dto = await res.json();
+      msg.className = 'alert alert--success';
+      msg.textContent = `가입 완료! 환영합니다, ${dto.name}님.`;
+      msg.style.display = 'block';
+      // 선택: 1~2초 후 메인으로 이동
+      // setTimeout(() => location.href = '/', 1200);
+    } catch (e) {
+      msg.className = 'alert alert--danger';
+      msg.textContent = e.message;
+      msg.style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>
